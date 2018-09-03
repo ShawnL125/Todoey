@@ -10,14 +10,28 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
 
-    var itemArray = ["Find Mike", "Buy Egges", "Destory Demogorgon"]
+    var itemArray = [Item]()
     
     let defaults = UserDefaults.standard
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let newItem = Item()
+        newItem.title = "Send Applications"
+        itemArray.append(newItem)
+        
+        let newItem1 = Item()
+        newItem1.title = "Join Interview"
+        itemArray.append(newItem1)
+        
+        let newItem2 = Item()
+        newItem2.title = "Get Offer"
+        itemArray.append(newItem2)
+        
+        
         // Reload the data from documention that sorting by ToDoListArray for forKey
-        if let items = UserDefaults.standard.array(forKey: "ToDoListArray") as? [String] {
+        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
             itemArray = items
         }
     }
@@ -31,10 +45,16 @@ class TodoListViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
-        cell.textLabel?.text = itemArray[indexPath.row]
+        let item = itemArray[indexPath.row]
         
+        cell.textLabel?.text = item.title
+        
+        // Set the check mark when item stutas is done
+        cell.accessoryType = item.done ? .checkmark : .none
+       
         return cell
     }
     
@@ -42,13 +62,10 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+        // Reverse the status of item after clicking item
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        // Set checkmark when click row
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        } else {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
+        tableView.reloadData()
         
         // Flash when selecting row
         tableView.deselectRow(at: indexPath, animated: true)
@@ -66,7 +83,10 @@ class TodoListViewController: UITableViewController {
         // It will happens when user clicks on Add item button
         let action = UIAlertAction(title: "Add item", style: .default) {(action) in
             
-            self.itemArray.append(textField.text!)
+            let newItem = Item()
+            newItem.title = textField.text!
+            
+            self.itemArray.append(newItem)
             // Set the defaults documentation for store the array and call it when app started
             self.defaults.set(self.itemArray, forKey: "ToDoListArray")
             // Reload the Data inside array and change the view of row

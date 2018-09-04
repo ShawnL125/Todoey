@@ -12,34 +12,18 @@ class TodoListViewController: UITableViewController {
 
     var itemArray = [Item]()
     
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let newItem = Item()
-        newItem.title = "Send Applications"
-        itemArray.append(newItem)
+        // Load the data from documentDirectory
+        loadItemData()
         
-        let newItem1 = Item()
-        newItem1.title = "Join Interview"
-        itemArray.append(newItem1)
-        
-        let newItem2 = Item()
-        newItem2.title = "Get Offer"
-        itemArray.append(newItem2)
-        
-        
-        // Reload the data from documention that sorting by ToDoListArray for forKey
-        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-            itemArray = items
-        }
     }
 
     //MARK - TableView Datasource Methods
-    
 
-    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
@@ -65,7 +49,7 @@ class TodoListViewController: UITableViewController {
         // Reverse the status of item after clicking item
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        tableView.reloadData()
+        saveItemData()
         
         // Flash when selecting row
         tableView.deselectRow(at: indexPath, animated: true)
@@ -87,10 +71,10 @@ class TodoListViewController: UITableViewController {
             newItem.title = textField.text!
             
             self.itemArray.append(newItem)
-            // Set the defaults documentation for store the array and call it when app started
-            self.defaults.set(self.itemArray, forKey: "ToDoListArray")
-            // Reload the Data inside array and change the view of row
-            self.tableView.reloadData()
+            
+            self.saveItemData()
+            
+            
         }
         
         // TextField in alert window
@@ -102,6 +86,32 @@ class TodoListViewController: UITableViewController {
         alert.addAction(action)
         
         present(alert, animated: true, completion: nil)
+    }
+    
+    // Save Item data on documentDirectory
+    func saveItemData() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(self.itemArray)
+            try data.write(to: self.dataFilePath!)
+        } catch {
+            print("Error encoding item array, \(error)")
+        }
+        
+        // Reload the Data inside array and change the view of row
+        self.tableView.reloadData()
+    }
+    
+    func loadItemData() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error decoding item array, \(error)")
+            }
+        }
     }
     
 }

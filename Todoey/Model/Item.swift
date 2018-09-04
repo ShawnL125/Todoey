@@ -8,7 +8,8 @@
 
 import Foundation
 
-class Item {
+// This can encode and decode itself to an external representation
+class Item : Codable{
     var title : String = ""
     var done : Bool = false
     
